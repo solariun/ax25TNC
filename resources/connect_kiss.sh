@@ -48,5 +48,5 @@ echo "A porta será criada em /tmp/ttyKISS"
 
 # Executa o ble-serial
 # -p cria um link fixo para facilitar a configuração no QtTermTCP
-ble-serial -v -t "${TIMEOUT}" -d "$DEVICE_UUID" -r "$READ_UUID" -w "$WRITE_UUID"  --expose-tcp-port "${TCP_PORT}"
+ble-serial -v -a public -t "${TIMEOUT}" -d "$DEVICE_UUID" -r "$READ_UUID" -w "$WRITE_UUID"  --expose-tcp-port "${TCP_PORT}"
 

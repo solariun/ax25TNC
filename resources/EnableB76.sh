@@ -9,5 +9,5 @@ echo "Iniciando ponte Serial <-> BLE para VR-N76..."
 echo "Aguardando conexão..."
 
 # O parâmetro -p cria um link simbólico fixo, facilitando no QtTermTCP
-ble-serial -d "$RADIO_UUID" -r "$READ_UUID" -w "$WRITE_UUID" -p /tmp/ttyVRN76
+ble-serial -v -t 30 -a public -d "$RADIO_UUID" -r "$READ_UUID" -w "$WRITE_UUID" -p /tmp/ttyVRN76
 
