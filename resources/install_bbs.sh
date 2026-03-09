@@ -1,12 +1,19 @@
 #!/bin/bash
 
 # --- Configuration & Constants (No Magic Numbers) ---
-DEFAULT_RADIO_NAME="VR-N7600"
+DEFAULT_RADIO_NAME="38:D2:00:01:61:35"
 RADIO_NAME=${1:-$DEFAULT_RADIO_NAME}
 MY_CALL="MYCALL-1"                   # IMPORTANT: Update in /etc/ax25/axports
 KISS_PORT="/tmp/ttyKISS"
 AX_PORT_FILE="/etc/ax25/axports"
 BIN_DIR="/usr/local/bin"
+
+# pipx Global Path Overrides
+GLOBAL_BIN_DIR="/usr/local/bin"
+GLOBAL_HOME_DIR="/opt/pipx"
+
+export PIPX_HOME="$GLOBAL_HOME_DIR"
+export PIPX_BIN_DIR="$GLOBAL_BIN_DIR"
 
 # Ensure script is run as root
 if [[ $EUID -ne 0 ]]; then
@@ -44,32 +51,33 @@ fi
 echo "--- [5/6] Creating Radio Connection Logic Script ---"
 cat << EOF > "$BIN_DIR/radio_connect.sh"
 #!/bin/bash
-# Script to bridge BLE to KISS Serial for $RADIO_NAME
-TARGET_NAME="\$1"
+# Script to bridge BLE to KISS Serial for BBS-Modem
+TARGET_NAME="$1"
 TIMEOUT=15
-PORT="$KISS_PORT"
+PORT="/tmp/ttyKISS"
 BLE_SCAN="/root/.local/bin/ble-scan"
 BLE_SERIAL="/root/.local/bin/ble-serial"
 
-echo "Scanning for \$TARGET_NAME..."
-ID=\$($BLE_SCAN | grep -i "\$TARGET_NAME" | awk '{print \$1}' | head -n 1 | tr -d '[:cntrl:]')
+echo "Scanning for $TARGET_NAME..."
+#ID=$($BLE_SCAN -t "${TIMEOUT}" | grep -i "$TARGET_NAME" | awk '{print $1}' | head -n 1 | tr -d '[:cntrl:]')
+ID="$TARGET_NAME"
 
-if [ -z "\$ID" ]; then
-    echo "Device \$TARGET_NAME not found. Retrying..."; exit 1
+if [ -z "$ID" ]; then 
+    echo "Device $TARGET_NAME not found. Retrying..."; exit 1
 fi
 
-echo "Performing Deep Scan on \$ID..."
-SCAN=\$(timeout \$TIMEOUT \$BLE_SCAN -d "\$ID")
+echo "Performing Deep Scan on $ID..."
+SCAN=$($BLE_SCAN -t "${TIMEOUT}" -d "$ID")
 # Standard GATT handles for VR-N76 series serial data
-R_UUID=\$(echo "\$SCAN" | grep "00000003" | awk '{print \$2}')
-W_UUID=\$(echo "\$SCAN" | grep "00000002" | awk '{print \$2}')
+R_UUID=$(echo "$SCAN" | grep "00000003" | awk '{print $2}')
+W_UUID=$(echo "$SCAN" | grep "00000002" | awk '{print $2}')
 
-if [ -z "\$R_UUID" ] || [ -z "\$W_UUID" ]; then
+if [ -z "$R_UUID" ] || [ -z "$W_UUID" ]; then
     echo "Could not resolve GATT characteristics for KISS."; exit 1
 fi
 
-echo "Connecting to \$ID (Address: Public) for KISS operation..."
-exec \$BLE_SERIAL -v -a public -d "\$ID" -r "\$R_UUID" -w "\$W_UUID" -p "\$PORT"
+echo "Connecting to $ID (Address: Public) for KISS operation..."
+exec $BLE_SERIAL -v -t "${TIMEOUT}" -a public -d "$ID" -r "$R_UUID" -w "$W_UUID" -p "$PORT"
 EOF
 
 chmod +x "$BIN_DIR/radio_connect.sh"
