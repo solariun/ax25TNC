@@ -2,7 +2,7 @@
 
 # --- Configuration & Constants (No Magic Numbers) ---
 DEFAULT_RADIO_NAME="VR-N7600"
-RADIO_NAME=${1:-$DEFAULT_RADIO_NAME} 
+RADIO_NAME=${1:-$DEFAULT_RADIO_NAME}
 MY_CALL="MYCALL-1"                   # IMPORTANT: Update in /etc/ax25/axports
 KISS_PORT="/tmp/ttyKISS"
 AX_PORT_FILE="/etc/ax25/axports"
@@ -10,16 +10,20 @@ BIN_DIR="/usr/local/bin"
 
 # Ensure script is run as root
 if [[ $EUID -ne 0 ]]; then
-   echo "This script must be run as root (sudo)" 
+   echo "This script must be run as root (sudo)"
    exit 1
 fi
 
 echo "--- [1/6] Installing System Dependencies ---"
-apt-get update && apt-get upgrade -y
-apt-get install -y build-essential libax25-dev ax25-tools ax25-apps \
+apt-get update # && apt-get upgrade -y
+apt-get install -y build-essential git bluez libax25-dev ax25-tools ax25-apps \
                    python3-pip python3-venv pipx socat git cmake screen \
                    libncurses5-dev zlib1g-dev libasound2-dev \
                    direwolf linpac
+
+
+echo "\t * unblocking the bluetooth to activate it"
+sudo rfkill unblock bluetooth
 
 echo "--- [2/6] Installing LinBPQ ---"
 mkdir -p /opt/linbpq && cd /opt/linbpq
@@ -50,7 +54,7 @@ BLE_SERIAL="/root/.local/bin/ble-serial"
 echo "Scanning for \$TARGET_NAME..."
 ID=\$($BLE_SCAN | grep -i "\$TARGET_NAME" | awk '{print \$1}' | head -n 1 | tr -d '[:cntrl:]')
 
-if [ -z "\$ID" ]; then 
+if [ -z "\$ID" ]; then
     echo "Device \$TARGET_NAME not found. Retrying..."; exit 1
 fi
 
@@ -133,4 +137,3 @@ echo "2. Start the stack: sudo systemctl start linpac.service"
 echo "3. View LinPac: screen -r linpac"
 echo "4. Monitor logs: journalctl -u radio_connect -f"
 echo "--------------------------------------------------------"
-
