@@ -52,35 +52,35 @@ echo "--- [5/6] Creating Radio Connection Logic Script ---"
 cat << EOF > "$BIN_DIR/radio_connect.sh"
 #!/bin/bash
 # Script to bridge BLE to KISS Serial for BBS-Modem
-TARGET_NAME="$1"
+TARGET_NAME="\$1"
 TIMEOUT=15
 PORT="/tmp/ttyKISS"
-BLE_SCAN="/root/.local/bin/ble-scan"
-BLE_SERIAL="/root/.local/bin/ble-serial"
+BLE_SCAN="/usr/local/bin/ble-scan"
+BLE_SERIAL="/usr/local/bin/ble-serial"
 
 echo "Scanning for $TARGET_NAME..."
-#ID=$($BLE_SCAN -t "${TIMEOUT}" | grep -i "$TARGET_NAME" | awk '{print $1}' | head -n 1 | tr -d '[:cntrl:]')
-ID="$TARGET_NAME"
+#ID=\$($BLE_SCAN -t "\${TIMEOUT}" | grep -i "\$TARGET_NAME" | awk '{print \$1}' | head -n 1 | tr -d '[:cntrl:]')
+ID="\$TARGET_NAME"
 
-if [ -z "$ID" ]; then 
-    echo "Device $TARGET_NAME not found. Retrying..."; exit 1
+if [ -z "\$ID" ]; then 
+    echo "Device \$TARGET_NAME not found. Retrying..."; exit 1
 fi
 
-echo "Performing Deep Scan on $ID..."
-SCAN=$($BLE_SCAN -t "${TIMEOUT}" -d "$ID")
+echo "Performing Deep Scan on \$ID..."
+SCAN=\$(\$BLE_SCAN -t "\${TIMEOUT}" -d "\$ID")
 # Standard GATT handles for VR-N76 series serial data
-R_UUID=$(echo "$SCAN" | grep "00000003" | awk '{print $2}')
-W_UUID=$(echo "$SCAN" | grep "00000002" | awk '{print $2}')
+R_UUID=\$(echo "\$SCAN" | grep "00000003" | awk '{print \$2}')
+W_UUID=\$(echo "\$SCAN" | grep "00000002" | awk '{print \$2}')
 
-if [ -z "$R_UUID" ] || [ -z "$W_UUID" ]; then
+if [ -z "\$R_UUID" ] || [ -z "\$W_UUID" ]; then
     echo "Could not resolve GATT characteristics for KISS."; exit 1
 fi
 
-echo "Connecting to $ID (Address: Public) for KISS operation..."
-exec $BLE_SERIAL -v -t "${TIMEOUT}" -a public -d "$ID" -r "$R_UUID" -w "$W_UUID" -p "$PORT"
+echo "Connecting to \$ID (Address: Public) for KISS operation..."
+exec \$BLE_SERIAL -v -t "\${TIMEOUT}" -a public -d "\$ID" -r "\$R_UUID" -w "\$W_UUID" -p "\$PORT"
 EOF
 
-chmod +x "$BIN_DIR/radio_connect.sh"
+chmod +x "\$BIN_DIR/radio_connect.sh"
 
 echo "--- [6/6] Creating Modular Systemd Service Chain ---"
 
