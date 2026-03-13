@@ -24,7 +24,7 @@ fi
 echo "--- [1/6] Installing System Dependencies ---"
 apt-get update # && apt-get upgrade -y
 apt-get install -y build-essential git bluez libax25-dev ax25-tools ax25-apps \
-                   python3-pip python3-venv pipx socat git cmake screen \
+                   bluetooth python3-pip python3-venv pipx socat git cmake screen \
                    libncurses5-dev zlib1g-dev libasound2-dev \
                    direwolf linpac
 
